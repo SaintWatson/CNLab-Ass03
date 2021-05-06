@@ -28,6 +28,6 @@ class Tree(Topo):
 		self.addLink(midSwitch, host3)
 		self.addLink(midSwitch, host4)
 
-		self.addLink(leftSwitch, host5)
+		self.addLink(rightSwitch, host5)
 
 topos = {'tree':(lambda:Tree())}
