@@ -41,4 +41,4 @@ class DataCenter(Topo):
 			elif i % 2 == 1 :
 				self.addLink(hosts[i], blocks[(i//2)*4+3])
 
-topos = {'DataCenter':(lambda:DataCenter(4))}
+topos = {'center':(lambda:DataCenter(4))}

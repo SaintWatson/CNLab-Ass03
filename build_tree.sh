@@ -1,2 +1,2 @@
-mn --custom tree.py --topo=tree --controller=remote
+mn --custom tree.py --topo=tree #--controller=remote
 
