@@ -32,13 +32,13 @@ class DataCenter(Topo):
 					self.addLink(switches[i], blocks[j*4+1])
 
 
-		for i in range(self.n * 2):
+		for i in range(self.n * 4):
 			hosts.append(self.addHost('h{}'.format(i+1)))
 
-		for i in range(self.n * 2):
-			if i % 2 == 0 :
-				self.addLink(hosts[i], blocks[(i//2)*4+2])
-			elif i % 2 == 1 :
-				self.addLink(hosts[i], blocks[(i//2)*4+3])
+		for i in range(self.n * 4):
+			if i % 4 == 0 or i % 4 == 1:
+				self.addLink(hosts[i], blocks[(i//4)*4+2])
+			elif i % 4 == 2 or i % 4 == 3  :
+				self.addLink(hosts[i], blocks[(i//4)*4+3])
 
 topos = {'center':(lambda:DataCenter(4))}
