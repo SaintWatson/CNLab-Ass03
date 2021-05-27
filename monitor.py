@@ -1,4 +1,5 @@
 from operator import attrgetter
+from typing import DefaultDict
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, DEAD_DISPATCHER
@@ -9,7 +10,7 @@ from ryu.lib import stplib
 from ryu.lib.packet import *
 from ryu.app import simple_switch_13
 from ryu.lib import hub
-
+from collections import defaultdict
 
 class SimpleSwitch13(simple_switch_13.SimpleSwitch13):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -55,6 +56,8 @@ class SimpleSwitch13(simple_switch_13.SimpleSwitch13):
     
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def _flow_stats_reply_handler(self, ev):
+        sum = defaultdict(int)
+        
         body = ev.msg.body
         self.logger.info('Flow Statistical Information')
         self.logger.info('datapath         '
@@ -70,6 +73,17 @@ class SimpleSwitch13(simple_switch_13.SimpleSwitch13):
         for stat in sorted([flow for flow in body if flow.priority == 1],
                            key=lambda flow: (flow.match.get('in_port', 0), 
                                              flow.match.get('eth_dst', 0))):
+            if stat.instructions[0].type != 5:
+                port = stat.instructions[0].actions[0].port
+                if stat.match['ip_proto'] == 0x06:
+                    sum[port] += stat.byte_count - self.flow[(ev.msg.datapath.id, stat.instructions[0].actions[0].port)][(stat.match['ipv4_src'], stat.match['tcp_src'], 
+                                                        stat.match['ipv4_dst'],stat.match['tcp_dst'], 'TCP')]
+                    self.flow[(ev.msg.datapath.id, stat.instructions[0].actions[0].port)][(stat.match['ipv4_src'], stat.match['tcp_src'], stat.match['ipv4_dst'],stat.match['tcp_dst'], 'TCP')] = stat.byte_count
+                elif stat.match['ip_proto'] == 0x11:
+                    sum[port] += stat.byte_count - self.flow[(ev.msg.datapath.id, stat.instructions[0].actions[0].port)][(stat.match['ipv4_src'], stat.match['udp_src'], 
+                                                        stat.match['ipv4_dst'],stat.match['udp_dst'], 'UDP')]
+                    self.flow[(ev.msg.datapath.id, stat.instructions[0].actions[0].port)][(stat.match['ipv4_src'], stat.match['udp_src'], stat.match['ipv4_dst'],stat.match['udp_dst'], 'UDP')] = stat.byte_count
+
             # datapath_id in-port src_ip src_port dst_ip dst_port protocol  action packets  bytes
             if stat.match['ip_proto'] == 0x06 :
                 self.logger.info('%016x %8x %17s %8d %17s %8d %9s %8s %8d %10d',
@@ -97,7 +111,10 @@ class SimpleSwitch13(simple_switch_13.SimpleSwitch13):
                                  ' ', 'ICMP',
                                  stat.instructions[0].actions[0].port,#action
                                  stat.packet_count, stat.byte_count)
-
+        for port in sum.keys():
+            if sum[port] >= 1000000 :
+                print("Congestion Alert! dpid : {} port : {} sum of flows : {}".format(ev.msg.datapath.id, port, sum[port]))
+        
     @set_ev_cls(ofp_event.EventOFPPortStatsReply, MAIN_DISPATCHER)
     def _port_stats_reply_handler(self, ev):
         body = ev.msg.body
