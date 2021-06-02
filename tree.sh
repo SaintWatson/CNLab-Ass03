@@ -1,3 +1,3 @@
 #! /bin/bash
-sudo mn --custom topo/tree.py --topo=tree --controller=remote
+sudo mn --custom topo/tree.py $1 --topo=tree --controller=remote
 

@@ -1,3 +1,3 @@
 #! /bin/bash
-sudo mn --custom topo/center.py --topo=center --controller=remote
+sudo mn --custom topo/center.py $1 --topo=center --controller=remote 
 

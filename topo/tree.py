@@ -1,5 +1,5 @@
 from mininet.topo import Topo
-
+import sys
 class Tree(Topo):
 	def __init__(self):
 		Topo.__init__(self)
@@ -30,4 +30,5 @@ class Tree(Topo):
 
 		self.addLink(rightSwitch, host5)
 
+n = int(sys.argv[1])
 topos = {'tree':(lambda:Tree())}

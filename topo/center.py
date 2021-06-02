@@ -1,4 +1,5 @@
 from mininet.topo import Topo
+import sys
 
 
 class DataCenter(Topo):
@@ -41,4 +42,5 @@ class DataCenter(Topo):
 			elif i % 4 == 2 or i % 4 == 3  :
 				self.addLink(hosts[i], blocks[(i//4)*4+3])
 
-topos = {'center':(lambda:DataCenter(5))}
+n = int(sys.argv[1])
+topos = {'center':(lambda:DataCenter(n))}
